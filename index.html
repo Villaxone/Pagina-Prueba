@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>PAIEP - Subida de PDF</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: #ffffff;
+      color: #000000;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+    }
+    header img {
+      height: 130px;
+      margin-right: 20px;
+    }
+    header h1 {
+      font-size: 3em;
+      color: #4e342e;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .container {
+      text-align: center;
+      padding: 60px 20px;
+      margin-top: 50px;
+    }
+    .container h2 {
+      color: #e65100;
+      font-size: 2.5em;
+      text-align: center;
+      margin-top: -180px;
+    }
+    .upload-box {
+      background-color: #ffcc80;
+      padding: 20px;
+      min-height: 150px;  /* Usamos min-height en lugar de height fija */
+      margin: 40px auto;
+      width: 300px; /* horizontal */
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      border: 3px dashed transparent;
+      transition: border-color 0.3s ease;
+      position: relative;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centra el contenido verticalmente */
+      align-items: center;  /* Centra el contenido horizontalmente */
+      text-align: center;  /* Centra el texto */
+    }
+    .upload-box.dragover {
+      border-color: #bf360c;
+      background-color: #ffd180;
+    }
+    .upload-box .icon {
+      font-size: 3.5em;
+      color: #bf360c;
+    }
+    .upload-box .arrow {
+      font-size: 6em;
+      color: #00acc1;
+    }
+    .upload-box p {
+      font-size: 1.2em;
+      margin-top: 2px;
+    }
+    .upload-box .filename {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #000000;
+      word-break: break-word;
+    }
+    .loading-message {
+      font-size: 1.2em;
+      color: #ff5722;
+      font-weight: bold;
+      margin-top: 10px;
+      display: none;
+    }
+    .mascot {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      max-width: 1000px;
+      max-height: 1000px;
+    }
+    .info-box {
+      background-color: #e3f2fd;
+      padding: 15px;
+      margin: -20px auto 0px auto;
+      width: 70%;
+      max-width: 400px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      text-align: left;
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+      user-select: none;
+    }
+    .info-box h3 {
+      margin: 0;
+      color: #1976d2;
+    }
+    .info-box ul {
+      list-style-type: none;
+      padding-left: 0;
+      color: #1976d2;
+      font-size: 1.2em;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding-top 0.4s ease;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .info-box:hover ul {
+      max-height: 500px;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+
+    /* Estilos para la segunda página */
+    .second-page {
+      display: none;
+      text-align: center;
+    }
+
+    .second-page input {
+      margin: 15px;
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .second-page button {
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background-color: #004285;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .second-page button:hover {
+      background-color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="C:/Users/nicol/OneDrive/Imágenes/logo paiep.png" alt="Logo USACH" />
+    <h1></h1>
+  </header>
+
+  <!-- Página de carga de archivo -->
+  <div class="container">
+    <h2>Asistencias PAIEP</h2>
+    <div class="upload-box" id="uploadBox" tabindex="0" role="button" aria-label="Área para subir archivo PDF">
+      <div class="arrow">⬇</div>
+      <p>Arrastra y suelta tu archivo PDF aquí o haz click para seleccionar</p>
+      <div class="filename" id="fileName"></div>
+      <div id="loadingMessage" class="loading-message" style="display:none;">Cargando...</div>
+      <input type="file" id="fileInput" accept="application/pdf" style="display:none" />
+    </div>
+    <div class="info-box" aria-expanded="false">
+      <h3>¿Qué hace esta herramienta?</h3>
+      <ul>
+        <li>* Reconocerá automáticamente nombres y RUTs</li>
+        <li>* Validará los RUTs usando el algoritmo chileno</li>
+        <li>* Buscará RUTs faltantes o incorrectos en la base de datos</li>
+        <li>* Te permitirá revisar y corregir la información</li>
+        <li>* Exportará los datos a Excel o CSV</li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Segunda página: Formulario para ingresar datos -->
+  <div class="second-page" id="secondPage">
+    <h2>Información del Taller</h2>
+    <form id="workshopForm">
+      <input type="text" id="name" placeholder="Nombre del docente" required /><br />
+      <input type="text" id="workshop" placeholder="Taller realizado" required /><br />
+      <input type="date" id="date" required /><br />
+      <button type="submit">Guardar Información</button>
+    </form>
+  </div>
+  
+  <img class="mascot" src="C:/Users/nicol/Downloads/Adobe Express - file.png" alt="Mascota León" />
+  
+  <script>
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const secondPage = document.getElementById('secondPage');
+    const workshopForm = document.getElementById('workshopForm');
+
+    uploadBox.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        handleFile(fileInput.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadBox.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBox.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadBox.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBox.classList.remove('dragover');
+      });
+    });
+
+    uploadBox.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      // Mostrar el mensaje de "Cargando..."
+      loadingMessage.style.display = 'block';
+      
+      // Simular procesamiento (esto se debe reemplazar con el proceso real de carga del archivo)
+      setTimeout(() => {
+        if (file.type !== 'application/pdf') {
+          alert('Por favor, sube un archivo PDF válido.');
+          loadingMessage.style.display = 'none'; // Ocultar mensaje de carga
+          return;
+        }
+        
+        fileNameDisplay.textContent = `Archivo cargado: ${file.name}`;
+        loadingMessage.style.display = 'none'; // Ocultar mensaje de carga después de procesar
+
+        // Ir a la segunda página
+        secondPage.style.display = 'block';  // Mostrar la segunda página
+      }, 2000); // Simula un retraso de 2 segundos para la carga del archivo
+    }
+
+    workshopForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Guardar los datos del formulario
+      const name = document.getElementById('name').value;
+      const workshop = document.getElementById('workshop').value;
+      const date = document.getElementById('date').value;
+
+      alert(`Información Guardada: \nNombre: ${name} \nTaller: ${workshop} \nFecha: ${date}`);
+    });
+  </script>
+</body>
+</html>
